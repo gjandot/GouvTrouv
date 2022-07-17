@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gouvernement BORNE : jeu de correspondances">
+<meta name="author" content="Guillaume JANDOT">
+<link rel="icon" type="image/png" href="gouvtrouv.png">
+<title>Gouvernement BORNE</title>
+<style>
+.nom {position:absolute; z-index:9; left:10px; font-size:1.1em; }
+.ministere { position:absolute; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px;}
+.case {position:absolute; border:1px solid black; width:197px; left:195px;}
+#score { position:fixed; top:5px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
+#essais { position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
+#version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
+</style>
+</head>
+<body onload="start()" style="user-select:none">
+<script type="text/javascript">
+ const APPNAME = "GouvTrouv";
+ const VERNUM = "0.001"; //G. JANDOT 17/07/2022
+ 
+ var score = 0;
+ var essais = 0;
+ var mouv = false;
+ var offx = 0;
+ var offy = 0;
+ const H_TXT = 32;
+ var elt_depl;
+ var tab_images = [];
+ var tab_idx = [];
+ var tab_ministres = [
+	"Rima Abdul-Malak", "Culture",
+	"Gabriel Attal", "Comptes publics",
+	"Sonia Backès", "Citoyenneté",
+	"Jean-Noël Barrot", "Transition numérique et Télécommunications",
+	"Clément Beaune", "Transports",
+	"Olivier Becht", "Commerce extérieur, Attractivité et Français de l'étranger",
+	"Christophe Béchu", "Transition écologique et Cohésion des territoires",
+	"Hervé Berville", "Mer",
+	"Laurence Boone", "Europe",
+	"Élisabeth Borne", "Première ministre",
+	"François Braun", "Santé et Prévention",
+	"Jean-François Carenco", "Outre-mer",
+	"Charlotte Caubel", "Enfance",
+	"Caroline Cayeux", "Collectivités territoriales",
+	"Catherine Colonna", "Europe et Affaires étrangères",
+	"Jean-Christophe Combe", "Solidarités, Autonomie personnes handicapées",
+	"Bérangère Couillard", "Écologie",
+	"Gérald Darmanin", "Intérieur et Outre-mer",
+	"Geneviève Darrieussecq", "Personnes handicapées",
+	"Éric Dupond-Moretti", "Justice",
+	"Olivier Dussopt", "Travail, Plein emploi et Insertion",
+	"Sarah El Haïry", "Jeunesse et Service national universel",
+	"Dominique Faure", "Ruralité",
+	"Marc Fesneau", "Agriculture et Souveraineté alimentaire",
+	"Agnès Firmin Le Bodo", "Organisation territoriale et Professions de santé",
+	"Carole Grandjean", "Enseignement et Formation professionnels",
+	"Olivia Grégoire", "Petites et moyennes entreprises, Commerce, Artisanat et Tourisme",
+	"Stanislas Guerini", "Transformation et de la Fonction publiques",
+	"Olivier Klein", "Ville et Logement",
+	"Bruno Le Maire", "Économie, Finances et Souveraineté industrielle et numérique",
+	"Sébastien Lecornu", "Armées",
+	"Roland Lescure", "Industrie",
+	"Patricia Mirallès", "Anciens combattants et Mémoire",
+	"Pap Ndiaye", "Éducation nationale et Jeunesse",
+	"Amélie Oudéa-Castéra", "Sports et Jeux olympiques et paralympiques",
+	"Agnès Pannier-Runacher", "Transition énergétique",
+	"Sylvie Retailleau", "Enseignement supérieur et Recherche",
+	"Franck Riester", "Relations avec le Parlement",
+	"Isabelle Rome", "Égalité entre les femmes et les hommes, Diversité et Égalité des chances",
+	"Marlène Schiappa", "Économie sociale et solidaire et Vie associative",
+	"Olivier Véran", "Renouveau démocratique (porte-parole du Gouvernement)",
+	"Chrysoula Zacharopoulou", "Développement, Francophonie et Partenariats internationaux",
+ ];
+ 
+ function elt(nom_obj)  { return document.getElementById(nom_obj); }
+ function rnd(n)		{ return Math.floor(n*Math.random()); } 
+
+////////////// 
+ function maj_score()
+ {
+	elt("score").innerHTML = score + " / " + tab_ministres.length/2;
+	elt("essais").innerHTML = essais + " essai";
+	if (essais>1)
+	{
+		elt("essais").innerHTML += "s";
+	}
+ }
+ 
+ function bouge(e)
+ {
+	offx = e.pageX;
+	offy = e.pageY;
+	elt_depl.style.left = (offx-9) + "px";
+	elt_depl.style.top = (offy-9) + "px";;
+ }
+
+
+ function unclic(e)
+ {
+	if (mouv)
+	{ //atterrisage
+		document.removeEventListener("mousemove", bouge, false);
+		if (e.pageX<200)
+		{
+			elt_depl.style.left = "10px";
+			elt_depl.style.top = (elt_depl.num*H_TXT) + "px";
+			elt_depl.style.color = "black";
+			elt_depl.style.fontWeight  = "normal";
+		}
+		else
+		{
+			
+			elt_depl.style.left = "200px";
+
+			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
+			h = Math.floor(h/H_TXT);
+			if (h<0)
+			{
+				h=0;
+			}
+			if (elt_depl.num==tab_idx[h])
+			{
+				elt_depl.style.color = "green";
+				elt_depl.style.fontWeight = "bold";
+				score++;
+			}
+			else
+			{
+				elt_depl.style.color = "red";
+				elt_depl.style.fontWeight  = "normal";
+			}
+			essais++;
+			maj_score();
+			elt_depl.style.top = (h*H_TXT)+9 + "px";
+		}
+		mouv = false;
+	}
+	else
+	{ //décollage
+		mouv = true;
+		elt_depl = this;
+		if (elt_depl.style.color=="green")
+		{
+			score--;
+			maj_score();
+		}
+		document.addEventListener("mousemove", bouge, false);
+	}
+ }
+
+//////////////////////////
+ 
+ function start()
+ {
+	elt("vernum").innerHTML = VERNUM;
+	maj_score();
+	
+	for (i=0; i<tab_ministres.length/2; i++)
+	{
+		tab_idx[i] = i;
+	}
+	//algo. de Fisher-Yates-Knuth
+	//pour mélanger les ministères (tableau d'index)
+    var j, k, tmp;
+    for (j=tab_idx.length-1; j>0; j--)
+	{
+        k = Math.floor(Math.random()*(j+1));
+        tmp = tab_idx[j];
+        tab_idx[j] = tab_idx[k];
+        tab_idx[k] = tmp;
+    }
+
+	//construction des deux listes
+	for (i=0; i<tab_ministres.length/2; i++)
+	{
+		var myspan = document.createElement('span');
+		myspan.className = "nom";
+		myspan.style = "top:" + H_TXT*i + "px;";
+		myspan.addEventListener("mousedown", unclic, false);
+		myspan.innerHTML = tab_ministres[i*2];
+		myspan.num = i;
+		elt('main').appendChild(myspan);
+		
+		myspan = document.createElement('span');
+		myspan.className = "ministere";
+		myspan.style = "left:400px; top:" + H_TXT*i + "px;";
+		var coul = 128+rnd(128);
+		var couleur = "rgb("+coul+","+coul+","+coul+")";
+		myspan.style.backgroundColor=couleur;
+		myspan.innerHTML = tab_ministres[tab_idx[i]*2+1];
+		elt('main').appendChild(myspan);
+		
+		//cadres
+		myspan = document.createElement('span');
+		myspan.className = "case";
+		myspan.style = "height:" + H_TXT + "px; top:" + H_TXT*i + "px;";
+		elt('main').appendChild(myspan);
+	}
+ }
+</script>
+<div id="score"></div>
+<div id="essais"></div>
+<div id="main"></div>
+<div id="version"><A HREF="https://github.com/gjandot/">Version <span id="vernum">0.000</span></A></div>
+</body>
+</html>
