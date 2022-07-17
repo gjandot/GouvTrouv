@@ -9,17 +9,24 @@
 <title>Gouvernement BORNE</title>
 <style>
 .nom {position:absolute; z-index:9; left:10px; font-size:1.1em; }
-.ministere { position:absolute; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px;}
-.case {position:absolute; border:1px solid black; width:197px; left:195px;}
-#score { position:fixed; top:5px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
+.ministere { position:absolute; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
+.case {position:absolute; border:1px solid black; width:197px; left:195px; }
+#scoreaff { position:fixed; top:5px; right:49px; border:1px solid; width:50px; height:20px; }
+#scorebar { background-color:#88FF88; height:20px;}
+#score { text-align:center; width:100%; position:absolute; }
 #essais { position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 </style>
-</head>
-<body onload="start()" style="user-select:none">
+<!--todo
+* explications initiales
+* empêcher le dépôt de plusieurs ministres au même endroit
+* fin
+-->
+<noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
  const APPNAME = "GouvTrouv";
- const VERNUM = "0.001"; //G. JANDOT 17/07/2022
+ const VERDES = "G. JANDOT - 17/07/2022";
+ const VERNUM = "0.002";
  
  var score = 0;
  var essais = 0;
@@ -28,51 +35,56 @@
  var offy = 0;
  const H_TXT = 32;
  var elt_depl;
- var tab_images = [];
  var tab_idx = [];
+ 
+ //1) préparer le tab_ministres en clair ("Ministre", "Ministère",)
+ //2) appeler la page avec le paramètre ?c
+ //3) récuperer le tab_ministres encodé dans la console
+ //4) et le remplacer dans la code de la page pour obfuscation basique
  var tab_ministres = [
-	"Rima Abdul-Malak", "Culture",
-	"Gabriel Attal", "Comptes publics",
-	"Sonia Backès", "Citoyenneté",
-	"Jean-Noël Barrot", "Transition numérique et Télécommunications",
-	"Clément Beaune", "Transports",
-	"Olivier Becht", "Commerce extérieur, Attractivité et Français de l'étranger",
-	"Christophe Béchu", "Transition écologique et Cohésion des territoires",
-	"Hervé Berville", "Mer",
-	"Laurence Boone", "Europe",
-	"Élisabeth Borne", "Première ministre",
-	"François Braun", "Santé et Prévention",
-	"Jean-François Carenco", "Outre-mer",
-	"Charlotte Caubel", "Enfance",
-	"Caroline Cayeux", "Collectivités territoriales",
-	"Catherine Colonna", "Europe et Affaires étrangères",
-	"Jean-Christophe Combe", "Solidarités, Autonomie personnes handicapées",
-	"Bérangère Couillard", "Écologie",
-	"Gérald Darmanin", "Intérieur et Outre-mer",
-	"Geneviève Darrieussecq", "Personnes handicapées",
-	"Éric Dupond-Moretti", "Justice",
-	"Olivier Dussopt", "Travail, Plein emploi et Insertion",
-	"Sarah El Haïry", "Jeunesse et Service national universel",
-	"Dominique Faure", "Ruralité",
-	"Marc Fesneau", "Agriculture et Souveraineté alimentaire",
-	"Agnès Firmin Le Bodo", "Organisation territoriale et Professions de santé",
-	"Carole Grandjean", "Enseignement et Formation professionnels",
-	"Olivia Grégoire", "Petites et moyennes entreprises, Commerce, Artisanat et Tourisme",
-	"Stanislas Guerini", "Transformation et de la Fonction publiques",
-	"Olivier Klein", "Ville et Logement",
-	"Bruno Le Maire", "Économie, Finances et Souveraineté industrielle et numérique",
-	"Sébastien Lecornu", "Armées",
-	"Roland Lescure", "Industrie",
-	"Patricia Mirallès", "Anciens combattants et Mémoire",
-	"Pap Ndiaye", "Éducation nationale et Jeunesse",
-	"Amélie Oudéa-Castéra", "Sports et Jeux olympiques et paralympiques",
-	"Agnès Pannier-Runacher", "Transition énergétique",
-	"Sylvie Retailleau", "Enseignement supérieur et Recherche",
-	"Franck Riester", "Relations avec le Parlement",
-	"Isabelle Rome", "Égalité entre les femmes et les hommes, Diversité et Égalité des chances",
-	"Marlène Schiappa", "Économie sociale et solidaire et Vie associative",
-	"Olivier Véran", "Renouveau démocratique (porte-parole du Gouvernement)",
-	"Chrysoula Zacharopoulou", "Développement, Francophonie et Partenariats internationaux",
+	"UmltYSBBYmR1bC1NYWxhaw==", "Q3VsdHVyZQ==",
+	"R2FicmllbCBBdHRhbA==", "Q29tcHRlcyBwdWJsaWNz",
+	"U29uaWEgQmFja+hz", "Q2l0b3llbm5ldOk=",
+	"SmVhbi1Ob+tsIEJhcnJvdA==", "VHJhbnNpdGlvbiBudW3pcmlxdWUgZXQgVOls6WNvbW11bmljYXRpb25z",
+	"Q2zpbWVudCBCZWF1bmU=", "VHJhbnNwb3J0cw==",
+	"T2xpdmllciBCZWNodA==", "Q29tbWVyY2UgZXh06XJpZXVyLCBBdHRyYWN0aXZpdOkgZXQgRnJhbudhaXMgZGUgbCfpdHJhbmdlcg==",
+	"Q2hyaXN0b3BoZSBC6WNodQ==", "VHJhbnNpdGlvbiDpY29sb2dpcXVlIGV0IENvaOlzaW9uIGRlcyB0ZXJyaXRvaXJlcw==",
+	"SGVydukgQmVydmlsbGU=", "TWVy",
+	"TGF1cmVuY2UgQm9vbmU=", "RXVyb3Bl",
+	"yWxpc2FiZXRoIEJvcm5l", "UHJlbWnocmUgbWluaXN0cmU=",
+	"RnJhbudvaXMgQnJhdW4=", "U2FudOkgZXQgUHLpdmVudGlvbg==",
+	"SmVhbi1GcmFu529pcyBDYXJlbmNv", "T3V0cmUtbWVy",
+	"Q2hhcmxvdHRlIENhdWJlbA==", "RW5mYW5jZQ==",
+	"Q2Fyb2xpbmUgQ2F5ZXV4", "Q29sbGVjdGl2aXTpcyB0ZXJyaXRvcmlhbGVz",
+	"Q2F0aGVyaW5lIENvbG9ubmE=", "RXVyb3BlIGV0IEFmZmFpcmVzIOl0cmFuZ+hyZXM=",
+	"SmVhbi1DaHJpc3RvcGhlIENvbWJl", "U29saWRhcml06XMsIEF1dG9ub21pZSBwZXJzb25uZXMgaGFuZGljYXDpZXM=",
+	"QulyYW5n6HJlIENvdWlsbGFyZA==", "yWNvbG9naWU=",
+	"R+lyYWxkIERhcm1hbmlu", "SW506XJpZXVyIGV0IE91dHJlLW1lcg==",
+	"R2VuZXZp6HZlIERhcnJpZXVzc2VjcQ==", "UGVyc29ubmVzIGhhbmRpY2Fw6WVz",
+	"yXJpYyBEdXBvbmQtTW9yZXR0aQ==", "SnVzdGljZQ==",
+	"T2xpdmllciBEdXNzb3B0", "VHJhdmFpbCwgUGxlaW4gZW1wbG9pIGV0IEluc2VydGlvbg==",
+	"U2FyYWggRWwgSGHvcnk=", "SmV1bmVzc2UgZXQgU2VydmljZSBuYXRpb25hbCB1bml2ZXJzZWw=",
+	"RG9taW5pcXVlIEZhdXJl", "UnVyYWxpdOk=",
+	"TWFyYyBGZXNuZWF1", "QWdyaWN1bHR1cmUgZXQgU291dmVyYWluZXTpIGFsaW1lbnRhaXJl",
+	"QWdu6HMgRmlybWluIExlIEJvZG8=", "T3JnYW5pc2F0aW9uIHRlcnJpdG9yaWFsZSBldCBQcm9mZXNzaW9ucyBkZSBzYW506Q==",
+	"Q2Fyb2xlIEdyYW5kamVhbg==", "RW5zZWlnbmVtZW50IGV0IEZvcm1hdGlvbiBwcm9mZXNzaW9ubmVscw==",
+	"T2xpdmlhIEdy6WdvaXJl", "UGV0aXRlcyBldCBtb3llbm5lcyBlbnRyZXByaXNlcywgQ29tbWVyY2UsIEFydGlzYW5hdCBldCBUb3VyaXNtZQ==",
+	"U3RhbmlzbGFzIEd1ZXJpbmk=", "VHJhbnNmb3JtYXRpb24gZXQgZGUgbGEgRm9uY3Rpb24gcHVibGlxdWVz",
+	"T2xpdmllciBLbGVpbg==", "VmlsbGUgZXQgTG9nZW1lbnQ=",
+	"QnJ1bm8gTGUgTWFpcmU=", "yWNvbm9taWUsIEZpbmFuY2VzIGV0IFNvdXZlcmFpbmV06SBpbmR1c3RyaWVsbGUgZXQgbnVt6XJpcXVl",
+	"U+liYXN0aWVuIExlY29ybnU=", "QXJt6WVz",
+	"Um9sYW5kIExlc2N1cmU=", "SW5kdXN0cmll",
+	"UGF0cmljaWEgTWlyYWxs6HM=", "QW5jaWVucyBjb21iYXR0YW50cyBldCBN6W1vaXJl",
+	"UGFwIE5kaWF5ZQ==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==",
+	"QW3pbGllIE91ZOlhLUNhc3TpcmE=", "U3BvcnRzIGV0IEpldXggb2x5bXBpcXVlcyBldCBwYXJhbHltcGlxdWVz",
+	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==",
+	"VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==",
+	"U3lsdmllIFJldGFpbGxlYXU=", "RW5zZWlnbmVtZW50IHN1cOlyaWV1ciBldCBSZWNoZXJjaGU=",
+	"RnJhbmNrIFJpZXN0ZXI=", "UmVsYXRpb25zIGF2ZWMgbGUgUGFybGVtZW50",
+	"SXNhYmVsbGUgUm9tZQ==", "yWdhbGl06SBlbnRyZSBsZXMgZmVtbWVzIGV0IGxlcyBob21tZXMsIERpdmVyc2l06SBldCDJZ2FsaXTpIGRlcyBjaGFuY2Vz",
+	"TWFybOhuZSBTY2hpYXBwYQ==", "yWNvbm9taWUgc29jaWFsZSBldCBzb2xpZGFpcmUgZXQgVmllIGFzc29jaWF0aXZl",
+	"T2xpdmllciBW6XJhbg==", "UmVub3V2ZWF1IGTpbW9jcmF0aXF1ZSAocG9ydGUtcGFyb2xlIGR1IEdvdXZlcm5lbWVudCk=",
+	"Q2hyeXNvdWxhIFphY2hhcm9wb3Vsb3U=", "ROl2ZWxvcHBlbWVudCwgRnJhbmNvcGhvbmllIGV0IFBhcnRlbmFyaWF0cyBpbnRlcm5hdGlvbmF1eA=="
  ];
  
  function elt(nom_obj)  { return document.getElementById(nom_obj); }
@@ -82,11 +94,32 @@
  function maj_score()
  {
 	elt("score").innerHTML = score + " / " + tab_ministres.length/2;
+	elt("scorebar").style.width = Math.floor(score/tab_ministres.length*200) + "%";
 	elt("essais").innerHTML = essais + " essai";
 	if (essais>1)
 	{
 		elt("essais").innerHTML += "s";
 	}
+	var diff=essais-score;
+	if (diff>tab_ministres.length/2)
+	{
+		diff=tab_ministres.length/2;
+	}
+	//0=>vert >> jaune >> rouge
+	var pct = 200*diff/tab_ministres.length;
+	var couleur = "rgb(";
+	if (pct<50)
+	{
+		couleur += Math.round(pct*3.4+34);
+		couleur += ", 204";
+	}
+	else
+	{
+		couleur += "204, ";
+		couleur += Math.round((100-pct)*3.4+34);
+	}
+	couleur += ", 34)";
+	elt("essais").style.backgroundColor = couleur;
  }
  
  function bouge(e)
@@ -155,7 +188,20 @@
  
  function start()
  {
-	elt("vernum").innerHTML = VERNUM;
+	if (window.location.search.toLowerCase()=="?c")
+	//encodage du tableau pour obfuscation basique
+	{
+		for (var i=0; i<tab_ministres.length; i++)
+		{
+			var row = "\"" + btoa(tab_ministres[i]) + "\",";
+			console.log(row);
+		}
+		return;
+	}
+
+
+    elt("vernum").innerHTML = VERNUM;
+	elt("version").title = VERDES;
 	maj_score();
 	
 	for (i=0; i<tab_ministres.length/2; i++)
@@ -180,7 +226,7 @@
 		myspan.className = "nom";
 		myspan.style = "top:" + H_TXT*i + "px;";
 		myspan.addEventListener("mousedown", unclic, false);
-		myspan.innerHTML = tab_ministres[i*2];
+		myspan.innerHTML = atob(tab_ministres[i*2]);
 		myspan.num = i;
 		elt('main').appendChild(myspan);
 		
@@ -190,7 +236,7 @@
 		var coul = 128+rnd(128);
 		var couleur = "rgb("+coul+","+coul+","+coul+")";
 		myspan.style.backgroundColor=couleur;
-		myspan.innerHTML = tab_ministres[tab_idx[i]*2+1];
+		myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
 		elt('main').appendChild(myspan);
 		
 		//cadres
@@ -201,9 +247,11 @@
 	}
  }
 </script>
-<div id="score"></div>
+</HEAD>
+<body onload="start()" style="user-select:none">
+<div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
 <div id="essais"></div>
 <div id="main"></div>
-<div id="version"><A HREF="https://github.com/gjandot/">Version <span id="vernum">0.000</span></A></div>
+<div id="version"><A HREF="https://github.com/gjandot/GouvTrouv" TARGET="_blank">Version <span id="vernum">0.000</span></A></div>
 </body>
 </html>
