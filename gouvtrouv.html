@@ -14,19 +14,16 @@
 #scoreaff { position:fixed; top:5px; right:49px; border:1px solid; width:50px; height:20px; }
 #scorebar { background-color:#88FF88; height:20px;}
 #score { text-align:center; width:100%; position:absolute; }
-#essais { position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
+#essais { color:white; position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
+.box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px;}
+.modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white;}
+button { cursor:pointer; }
 </style>
-<!--todo
-* explications initiales
-* empêcher le dépôt de plusieurs ministres au même endroit
-* fin
--->
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const APPNAME = "GouvTrouv";
  const VERDES = "G. JANDOT - 17/07/2022";
- const VERNUM = "0.002";
+ const VERNUM = "1.003";
  
  var score = 0;
  var essais = 0;
@@ -36,6 +33,7 @@
  const H_TXT = 32;
  var elt_depl;
  var tab_idx = [];
+ var tab_occup = [];
  
  //1) préparer le tab_ministres en clair ("Ministre", "Ministère",)
  //2) appeler la page avec le paramètre ?c
@@ -105,7 +103,7 @@
 	{
 		diff=tab_ministres.length/2;
 	}
-	//0=>vert >> jaune >> rouge
+	//diff 0=>vert >> jaune >> rouge
 	var pct = 200*diff/tab_ministres.length;
 	var couleur = "rgb(";
 	if (pct<50)
@@ -130,6 +128,14 @@
 	elt_depl.style.top = (offy-9) + "px";;
  }
 
+ function rangement()
+ //retour d'un ministre dans la liste de gauche
+ {
+	elt_depl.style.left = "10px";
+	elt_depl.style.top = (elt_depl.num*H_TXT) + "px";
+	elt_depl.style.color = "black";
+	elt_depl.style.fontWeight  = "normal";
+ }
 
  function unclic(e)
  {
@@ -137,15 +143,12 @@
 	{ //atterrisage
 		document.removeEventListener("mousemove", bouge, false);
 		if (e.pageX<200)
+		//remis à gauche : rangement
 		{
-			elt_depl.style.left = "10px";
-			elt_depl.style.top = (elt_depl.num*H_TXT) + "px";
-			elt_depl.style.color = "black";
-			elt_depl.style.fontWeight  = "normal";
+			rangement();
 		}
 		else
 		{
-			
 			elt_depl.style.left = "200px";
 
 			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
@@ -154,20 +157,36 @@
 			{
 				h=0;
 			}
-			if (elt_depl.num==tab_idx[h])
+			if (tab_occup[h])
+			//la case est déjà occupée : rangement
 			{
-				elt_depl.style.color = "green";
-				elt_depl.style.fontWeight = "bold";
-				score++;
+				rangement();
 			}
 			else
+			//la case n'est pas déjà occupée
 			{
-				elt_depl.style.color = "red";
-				elt_depl.style.fontWeight  = "normal";
+				tab_occup[h] = true;
+				essais++;
+				if (elt_depl.num==tab_idx[h])
+				{
+					elt_depl.style.color = "green";
+					elt_depl.style.fontWeight = "bold";
+					score++;
+					if (score==tab_ministres.length/2)
+					{
+						maj_score();
+						fin();
+						return;
+					}
+				}
+				else
+				{
+					elt_depl.style.color = "red";
+					elt_depl.style.fontWeight  = "normal";
+				}
+				maj_score();
+				elt_depl.style.top = (h*H_TXT)+9 + "px";
 			}
-			essais++;
-			maj_score();
-			elt_depl.style.top = (h*H_TXT)+9 + "px";
 		}
 		mouv = false;
 	}
@@ -179,13 +198,29 @@
 		{
 			score--;
 			maj_score();
+			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
+			h = Math.floor(h/H_TXT);
+			if (h<0)
+			{
+				h=0;
+			}
+			tab_occup[h] = false;
+		}
+		if (elt_depl.style.color=="red")
+		{
+			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
+			h = Math.floor(h/H_TXT);
+			if (h<0)
+			{
+				h=0;
+			}
+			tab_occup[h] = false;		
 		}
 		document.addEventListener("mousemove", bouge, false);
 	}
  }
 
 //////////////////////////
- 
  function start()
  {
 	if (window.location.search.toLowerCase()=="?c")
@@ -199,7 +234,6 @@
 		return;
 	}
 
-
     elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
 	maj_score();
@@ -207,7 +241,9 @@
 	for (i=0; i<tab_ministres.length/2; i++)
 	{
 		tab_idx[i] = i;
+		tab_occup[i] = false;
 	}
+
 	//algo. de Fisher-Yates-Knuth
 	//pour mélanger les ministères (tableau d'index)
     var j, k, tmp;
@@ -219,7 +255,7 @@
         tab_idx[k] = tmp;
     }
 
-	//construction des deux listes
+	//construction/affichage des deux listes
 	for (i=0; i<tab_ministres.length/2; i++)
 	{
 		var myspan = document.createElement('span');
@@ -246,12 +282,39 @@
 		elt('main').appendChild(myspan);
 	}
  }
+ 
+function hide_help()
+{
+	elt("helpbox").style.display = "none";
+}
+
+function fin()
+{
+	elt("essfin").innerHTML = essais + " essais";
+	elt("finbox").style.display = "";
+}
 </script>
 </HEAD>
 <body onload="start()" style="user-select:none">
+<div id="helpbox" class="box">
+	<div id="help" class="modal">
+	L'objectif du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère.<BR>
+	<B>Cliquer</B> sur un nom de ministre pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère.<BR>
+	La liste des ministres est classée par ordre alphabétique, les ministères étant mélangés (et colorés) aléatoirement.<BR>
+	Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
+	<BR>
+	<center><button onclick="hide_help()">OK</button></center>
+	</div>
+</div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
 <div id="essais"></div>
 <div id="main"></div>
 <div id="version"><A HREF="https://github.com/gjandot/GouvTrouv" TARGET="_blank">Version <span id="vernum">0.000</span></A></div>
+<div id="finbox" class="box" style="display:none">
+	<div id="fin" class="modal">
+		Bravo !<BR>
+		<div id="essfin"></div>
+	</div>
+</div>
 </body>
 </html>
