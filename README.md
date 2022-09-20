@@ -1,5 +1,5 @@
 # GouvTrouv
-http://gjandot.free.fr/gvt/gouvtrouv.html
+http://gjandot.free.fr/apps/gvt/gouvtrouv.html
 <HR>
 French government matching game<BR>
 Data from https://www.gouvernement.fr/composition-du-gouvernement<BR>
