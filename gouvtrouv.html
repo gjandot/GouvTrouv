@@ -8,13 +8,16 @@
 <link rel="icon" type="image/png" href="gouvtrouv.png">
 <title>Gouvernement BORNE</title>
 <style>
-.nom {position:absolute; z-index:9; left:10px; font-size:1.1em; }
-.ministere { position:absolute; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
-.case {position:absolute; border:1px solid black; width:197px; left:195px; }
+.nom { position:absolute; z-index:9; left:10px; font-size:1.1em; }
+.ministere { position:absolute; left:400px; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
+.case { position:absolute; border:1px solid black; width:197px; left:195px; }
+.portrait { position:absolute; left:400px; }
+#zoom { position:fixed; left:480px; }
 #scoreaff { position:fixed; top:5px; right:49px; border:1px solid; width:50px; height:20px; }
 #scorebar { background-color:#88FF88; height:20px;}
 #score { text-align:center; width:100%; position:absolute; }
 #essais { color:white; position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
+#mode { position:fixed; top:90px; right: 50px; cursor:pointer;}
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 .box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px; }
 .modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white; }
@@ -22,11 +25,12 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 18/07/2022";
- const VERNUM = "1.004";
+ const VERDES = "G. JANDOT - 21/09/2022";
+ const VERNUM = "2.005";
  
  var score = 0;
  var essais = 0;
+ var mode_photo = false;
  var mouv = false;
  var offx = 0;
  var offy = 0;
@@ -34,6 +38,9 @@ button { cursor:pointer; }
  var elt_depl;
  var tab_idx = [];
  var tab_occup = [];
+ const VARNAME = "h"; //(localStorage)
+ const MODE_MIN = "ministères";
+ const MODE_PHOTO = "photographies";
  
  //1) préparer le tab_ministres en clair ("Ministre", "Ministère",)
  //2) appeler la page avec le paramètre ?c
@@ -75,8 +82,7 @@ button { cursor:pointer; }
 	"UGF0cmljaWEgTWlyYWxs6HM=", "QW5jaWVucyBjb21iYXR0YW50cyBldCBN6W1vaXJl",
 	"UGFwIE5kaWF5ZQ==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==",
 	"QW3pbGllIE91ZOlhLUNhc3TpcmE=", "U3BvcnRzIGV0IEpldXggb2x5bXBpcXVlcyBldCBwYXJhbHltcGlxdWVz",
-	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==",
-	"VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==",
+	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==",	"VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==",
 	"U3lsdmllIFJldGFpbGxlYXU=", "RW5zZWlnbmVtZW50IHN1cOlyaWV1ciBldCBSZWNoZXJjaGU=",
 	"RnJhbmNrIFJpZXN0ZXI=", "UmVsYXRpb25zIGF2ZWMgbGUgUGFybGVtZW50",
 	"SXNhYmVsbGUgUm9tZQ==", "yWdhbGl06SBlbnRyZSBsZXMgZmVtbWVzIGV0IGxlcyBob21tZXMsIERpdmVyc2l06SBldCDJZ2FsaXTpIGRlcyBjaGFuY2Vz",
@@ -87,7 +93,9 @@ button { cursor:pointer; }
  var nb_min = tab_ministres.length/2; //pour éviter quelques calculs
  
  function elt(nom_obj)  { return document.getElementById(nom_obj); }
- function rnd(n)		{ return Math.floor(n*Math.random()); } 
+ function rnd(n)		{ return Math.floor(n*Math.random()); }
+ function show(nom_obj) { elt(nom_obj).style.display = ""; }
+ function hide(nom_obj) { elt(nom_obj).style.display = "none"; }
 
 ////////////// 
  function maj_score()
@@ -141,7 +149,7 @@ button { cursor:pointer; }
  function unclic(e)
  {
 	if (mouv)
-	{ //atterrisage
+	{ //atterrissage
 		document.removeEventListener("mousemove", bouge, false);
 		if (e.pageX<200)
 		//remis à gauche : rangement
@@ -159,7 +167,7 @@ button { cursor:pointer; }
 				h=0;
 			}
 			if (tab_occup[h])
-			//la case est déjà occupée : rangement
+			//la case est déjà occupée : rangement (retour à gauche)
 			{
 				rangement();
 			}
@@ -217,6 +225,7 @@ button { cursor:pointer; }
 			}
 			tab_occup[h] = false;		
 		}
+		elt_depl.style.color = "blue";
 		document.addEventListener("mousemove", bouge, false);
 	}
  }
@@ -224,19 +233,36 @@ button { cursor:pointer; }
 //////////////////////////
  function start()
  {
+ 
+	document.addEventListener('dragstart', function (e) {
+		e.preventDefault(); // pour empêcher les <img> d'être "draggable"
+	});
+
 	if (window.location.search.toLowerCase()=="?c")
 	//encodage du tableau pour obfuscation basique
 	{
 		for (var i=0; i<tab_ministres.length; i++)
 		{
 			var row = "\"" + btoa(tab_ministres[i]) + "\",";
-			console.log(row);
+			console.log(row); //ne pas supprimer
 		}
 		return;
 	}
 
     elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
+	
+	elt("mode").innerHTML = "[Passer en mode \'";
+	elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
+	elt("mode").innerHTML += "\']";
+
+	if (localStorage.getItem(VARNAME)!=null)
+	{
+		hide("helpbox");
+	}
+
+	score = 0;
+	essais = 0;
 	maj_score();
 	
 	for (i=0; i<nb_min; i++)
@@ -267,13 +293,36 @@ button { cursor:pointer; }
 		myspan.num = i;
 		elt('main').appendChild(myspan);
 		
-		myspan = document.createElement('span');
-		myspan.className = "ministere";
-		myspan.style = "left:400px; top:" + H_TXT*i + "px;";
-		var coul = 128+rnd(128);
-		var couleur = "rgb("+coul+","+coul+","+coul+")";
-		myspan.style.backgroundColor=couleur;
-		myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
+		if (mode_photo)
+		{
+			myspan = document.createElement('img');
+			myspan.className = "portrait";
+			myspan.draggable = "false";
+            myspan.src = "img/m"+tab_idx[i]+".png";
+			myspan.style = "height:"+H_TXT+"px; top:" + H_TXT*i + "px;";
+			myspan.addEventListener('mouseenter', e => {
+				elt("zoom").src = e.target.src;
+				var posY = e.clientY;
+				var s = 150;
+				if (posY+s>window.innerHeight)
+				{
+					posY=window.innerHeight-s;
+				}
+				elt("zoom").style = "top:"+posY+"px;";
+				show("zoom");
+			});
+			myspan.addEventListener('mouseleave', e => {hide("zoom");});
+		}
+		else
+		{
+			myspan = document.createElement('span');
+			myspan.className = "ministere";
+			myspan.style = "top:" + H_TXT*i + "px;";
+			var coul = 128+rnd(128);
+			var couleur = "rgb("+coul+","+coul+","+coul+")";
+			myspan.style.backgroundColor=couleur;
+			myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
+		}
 		elt('main').appendChild(myspan);
 		
 		//cadres
@@ -286,30 +335,59 @@ button { cursor:pointer; }
  
 function hide_help()
 {
-	elt("helpbox").style.display = "none";
+	hide("helpbox");
+	localStorage.setItem(VARNAME, "1");
 }
 
 function fin()
 {
-	elt("essfin").innerHTML = essais + " essais";
-	elt("finbox").style.display = "";
+	elt("essfin").innerHTML = essais + " essais (";
+	
+	var nberr = essais-nb_min;
+	if (nberr==0)
+	{
+		elt("essfin").innerHTML += "aucune";
+	}
+	else
+	{
+		elt("essfin").innerHTML += nberr;
+	}
+	elt("essfin").innerHTML += " erreur";
+	if (nberr>1)
+	{
+		elt("essfin").innerHTML +="s"
+	}
+	elt("essfin").innerHTML += ")";
+	
+	show("finbox");
 }
+
+function change_mode()
+{
+	mode_photo = !mode_photo;
+	elt('main').innerHTML = "";
+	start();
+}
+
 </script>
 </HEAD>
 <body onload="start()" style="user-select:none">
 <div id="helpbox" class="box">
 	<div id="help" class="modal">
-	L'objectif du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère.<BR>
-	<B>Cliquer</B> sur un nom de ministre pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère.<BR>
-	La liste des ministres est classée par ordre alphabétique, les ministères étant mélangés (et colorés) aléatoirement.<BR>
-	Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
-	<BR>
-	<center><button onclick="hide_help()">OK</button></center>
+		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère ou de sa photographie.<BR>
+		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère ou d'une photo.<BR>
+		Un nom correctement placé sera affiché <span style="color:green">en vert</span>, sinon il apparaîtra <span style="color:red">en rouge</span>.<BR>
+		<BR>
+		Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
+		La liste des ministres est classée par ordre alphabétique, les ministères et les photographies étant mélangés aléatoirement.<BR>
+		<BR>
+		<center><button onclick="hide_help()">OK</button></center>
 	</div>
 </div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
 <div id="essais"></div>
 <div id="main"></div>
+<img id="zoom">
 <div id="version"><A HREF="https://github.com/gjandot/GouvTrouv" TARGET="_blank">Version <span id="vernum">0.000</span></A></div>
 <div id="finbox" class="box" style="display:none">
 	<div id="fin" class="modal">
@@ -317,5 +395,6 @@ function fin()
 		<div id="essfin"></div>
 	</div>
 </div>
+<div id="mode" onclick="change_mode()"></div>
 </body>
 </html>
