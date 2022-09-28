@@ -20,6 +20,7 @@
 #aide { position:fixed; top:5px; right:9px; border:1px solid; border-radius:20px; cursor:pointer; padding:5px; }
 #aide:hover { color:white; background-color:blue; }
 #mode { position:fixed; top:90px; right: 50px; cursor:pointer; }
+
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 .box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px; }
 .modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white; }
@@ -27,22 +28,31 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 26/09/2022";
- const VERNUM = "2.006";
+ const VERDES = "G. JANDOT - 28/09/2022";
+ const VERNUM = "2.007";
  
  var score = 0;
  var essais = 0;
  var mode_photo = false;
  var mouv = false;
+ const MARGE_SCROLL = 20;
+ var to_id; //timeout_idtimeout_id
+ const TO_DELAY = 100; //ms
+ var g_offy = 0;
  var offx = 0;
  var offy = 0;
  const H_TXT = 32;
+ const COLINT = 128;
+ const MAXCOL = 256;
  var elt_depl;
  var tab_idx = [];
  var tab_occup = [];
  const VARNAME = "h"; //(localStorage)
  const MODE_MIN = "ministères";
  const MODE_PHOTO = "photographies";
+ const COL_OK = "green";
+ const COL_MOV = "blue";
+ const COL_NO = "red";
  
  //1) préparer le tab_ministres en clair ("Ministre", "Ministère",)
  //2) appeler la page avec le paramètre ?c
@@ -131,12 +141,62 @@ button { cursor:pointer; }
 	elt("essais").style.backgroundColor = couleur;
  }
  
+ function autoscroll()
+ {
+ //up and bottom edges : auto-scroll
+	var wy = window.pageYOffset;
+	var wh = window.innerHeight;
+	var delta = 0;
+
+	if (g_offy<MARGE_SCROLL+wy)
+	{
+		if (wy>0)
+		{
+			delta = wy+MARGE_SCROLL-g_offy;
+			window.scroll(0, wy-delta); //vers le haut
+			g_offy = g_offy-delta;
+			if (mouv)
+			{
+				elt_depl.style.top = (g_offy-9) + "px";
+			}
+			to_id = setTimeout(autoscroll, TO_DELAY); //pour continuer
+								// même si la souris ne bouge plus
+			return;
+		}
+	}
+
+	var maxw = nb_min*H_TXT;
+	if (g_offy+MARGE_SCROLL>wy+wh)
+	{
+		if (wy+wh<maxw)
+		{
+			delta = g_offy+MARGE_SCROLL-wh-wy;
+			window.scroll(0, wy+delta); //vers le bas
+			g_offy = g_offy+delta;
+			if (mouv)
+			{
+				elt_depl.style.top = (g_offy-9) + "px";
+			}
+			setTimeout(autoscroll, TO_DELAY); //pour continuer
+								// même si la souris ne bouge plus
+		}
+	}
+ }
+ 
  function bouge(e)
  {
+	clearTimeout(to_id);
 	offx = e.pageX;
 	offy = e.pageY;
-	elt_depl.style.left = (offx-9) + "px";
-	elt_depl.style.top = (offy-9) + "px";;
+	
+	if (mouv)
+	{
+		elt_depl.style.left = (offx-9) + "px";
+		elt_depl.style.top = (offy-9) + "px";
+	}
+
+	g_offy = offy;
+	autoscroll();
  }
 
  function rangement()
@@ -152,7 +212,6 @@ button { cursor:pointer; }
  {
 	if (mouv)
 	{ //atterrissage
-		document.removeEventListener("mousemove", bouge, false);
 		if (e.pageX<200)
 		//remis à gauche : rangement
 		{
@@ -180,19 +239,20 @@ button { cursor:pointer; }
 				essais++;
 				if (elt_depl.num==tab_idx[h])
 				{
-					elt_depl.style.color = "green";
+					elt_depl.style.color = COL_OK;
 					elt_depl.style.fontWeight = "bold";
 					score++;
 					if (score==nb_min)
 					{
 						maj_score();
 						fin();
+						mouv = false;
 						return;
 					}
 				}
 				else
 				{
-					elt_depl.style.color = "red";
+					elt_depl.style.color = COL_NO;
 					elt_depl.style.fontWeight  = "normal";
 				}
 				maj_score();
@@ -205,7 +265,7 @@ button { cursor:pointer; }
 	{ //décollage
 		mouv = true;
 		elt_depl = this;
-		if (elt_depl.style.color=="green")
+		if (elt_depl.style.color==COL_OK)
 		{
 			score--;
 			maj_score();
@@ -217,7 +277,7 @@ button { cursor:pointer; }
 			}
 			tab_occup[h] = false;
 		}
-		if (elt_depl.style.color=="red")
+		if (elt_depl.style.color==COL_NO)
 		{
 			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
 			h = Math.floor(h/H_TXT);
@@ -227,18 +287,23 @@ button { cursor:pointer; }
 			}
 			tab_occup[h] = false;		
 		}
-		elt_depl.style.color = "blue";
-		document.addEventListener("mousemove", bouge, false);
+		elt_depl.style.color = COL_MOV;
 	}
  }
 
 //////////////////////////
  function start()
  {
- 
-	document.addEventListener('dragstart', function (e) {
+	document.addEventListener("dragstart", (e) => {
 		e.preventDefault(); // pour empêcher les <img> d'être "draggable"
 	});
+	
+	document.addEventListener("visibilitychange", (e) => {
+		clearTimeout(to_id); //pour arrêter un éventuel défilement,
+					//par ex. lors d'un changement d'onglet
+	});
+	
+	document.addEventListener("mousemove", bouge, false); // pour auto-scroll haut/bas
 
 	if (window.location.search.toLowerCase()=="?c")
 	//encodage du tableau pour obfuscation basique
@@ -251,7 +316,8 @@ button { cursor:pointer; }
 		return;
 	}
 
-    elt("vernum").innerHTML = VERNUM;
+    hide("finbox"); //restart
+	elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
 	
 	elt("mode").innerHTML = "[Passer en mode \'";
@@ -284,6 +350,7 @@ button { cursor:pointer; }
         tab_idx[k] = tmp;
     }
 
+	elt("main").innerHTML = "";
 	//construction/affichage des deux listes
 	for (i=0; i<nb_min; i++)
 	{
@@ -293,9 +360,9 @@ button { cursor:pointer; }
 		myspan.addEventListener("mousedown", unclic, false);
 		myspan.innerHTML = atob(tab_ministres[i*2]);
 		myspan.num = i;
-		elt('main').appendChild(myspan);
+		elt("main").appendChild(myspan);
 		
-		if (mode_photo)
+		if (mode_photo) //MODE_PHOTO
 		{
 			myspan = document.createElement('img');
 			myspan.className = "portrait";
@@ -315,23 +382,25 @@ button { cursor:pointer; }
 			});
 			myspan.addEventListener('mouseleave', e => {hide("zoom");});
 		}
-		else
+		else //MODE_MIN
 		{
 			myspan = document.createElement('span');
 			myspan.className = "ministere";
 			myspan.style = "top:" + H_TXT*i + "px;";
-			var coul = 128+rnd(128);
-			var couleur = "rgb("+coul+","+coul+","+coul+")";
+			var coul1 = COLINT+rnd(MAXCOL-COLINT);
+			var coul2 = COLINT+rnd(MAXCOL-COLINT);
+			var coul3 = COLINT+rnd(MAXCOL-COLINT);
+			var couleur = "rgb("+coul1+","+coul2+","+coul3+")";
 			myspan.style.backgroundColor=couleur;
 			myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
 		}
-		elt('main').appendChild(myspan);
+		elt("main").appendChild(myspan);
 		
 		//cadres
 		myspan = document.createElement('span');
 		myspan.className = "case";
 		myspan.style = "height:" + H_TXT + "px; top:" + H_TXT*i + "px;";
-		elt('main').appendChild(myspan);
+		elt("main").appendChild(myspan);
 	}
  }
  
@@ -367,7 +436,6 @@ function fin()
 function change_mode()
 {
 	mode_photo = !mode_photo;
-	elt('main').innerHTML = "";
 	start();
 }
 
@@ -395,6 +463,7 @@ function change_mode()
 	<div id="fin" class="modal">
 		Bravo !<BR>
 		<div id="essfin"></div>
+		<center><button onclick="start()">Recommencer</button></center>
 	</div>
 </div>
 <div id="aide" onclick="show('helpbox')" title="aide">?</div>
