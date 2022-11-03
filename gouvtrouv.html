@@ -19,8 +19,8 @@
 #essais { color:white; position:fixed; top:50px; right:49px; border:1px solid; padding:5px; border-radius:8px; }
 #aide { position:fixed; top:5px; right:9px; border:1px solid; border-radius:20px; cursor:pointer; padding:5px; }
 #aide:hover { color:white; background-color:blue; }
+#credits { font-size:0.7em; color:gray; }
 #mode { position:fixed; top:90px; right: 50px; cursor:pointer; }
-
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 .box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px; }
 .modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white; }
@@ -28,8 +28,8 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 28/09/2022";
- const VERNUM = "2.007";
+ const VERDES = "G. JANDOT - 02/11/2022";
+ const VERNUM = "2.008";
  
  var score = 0;
  var essais = 0;
@@ -452,6 +452,12 @@ function change_mode()
 		La liste des ministres est classée par ordre alphabétique, les ministères et les photographies étant mélangés aléatoirement.<BR>
 		<BR>
 		<center><button onclick="hide_help()">OK</button></center>
+		<span id="credits">Crédits photographiques : AFP, service photo de Matignon-Benoît Granier,
+		 Jonathan Sarago, Matignon, ministère de l'Intérieur, ministère de l'Intérieur-E. Delelis,
+		 ministère de l'Europe et des Affaires étrangères, Christian Hamilcaro/ministère des Armées,
+		 ministère de l'Éducation nationale et de la Jeunesse, ministère de l'Enseignement supérieur et de la Recherche,
+		 ministère de la Transition écologique et de la Cohésion des territoires,
+		 Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,Gezelin Gree.</span>
 	</div>
 </div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
