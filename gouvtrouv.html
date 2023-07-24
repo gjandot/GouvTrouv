@@ -9,6 +9,7 @@
 <title>Gouvernement BORNE</title>
 <style>
 .nom { position:absolute; z-index:9; left:10px; font-size:1.1em; }
+.nom:hover { border:1px solid black; border-radius:3px; }
 .ministere { position:absolute; left:400px; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
 .case { position:absolute; border:1px solid black; width:197px; left:195px; }
 .portrait { position:absolute; left:400px; }
@@ -28,8 +29,8 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 09/11/2022";
- const VERNUM = "2.009";
+ const VERDES = "G. JANDOT - 24/07/2022";
+ const VERNUM = "2.010";
  
  var score = 0;
  var essais = 0;
@@ -59,48 +60,49 @@ button { cursor:pointer; }
  //3) récuperer le tab_ministres encodé dans la console
  //4) et le remplacer dans la code de la page pour obfuscation basique
  var tab_ministres = [
-	"UmltYSBBYmR1bC1NYWxhaw==", "Q3VsdHVyZQ==",
-	"R2FicmllbCBBdHRhbA==", "Q29tcHRlcyBwdWJsaWNz",
-	"U29uaWEgQmFja+hz", "Q2l0b3llbm5ldOk=",
-	"SmVhbi1Ob+tsIEJhcnJvdA==", "VHJhbnNpdGlvbiBudW3pcmlxdWUgZXQgVOls6WNvbW11bmljYXRpb25z",
-	"Q2zpbWVudCBCZWF1bmU=", "VHJhbnNwb3J0cw==",
-	"T2xpdmllciBCZWNodA==", "Q29tbWVyY2UgZXh06XJpZXVyLCBBdHRyYWN0aXZpdOkgZXQgRnJhbudhaXMgZGUgbCfpdHJhbmdlcg==",
-	"Q2hyaXN0b3BoZSBC6WNodQ==", "VHJhbnNpdGlvbiDpY29sb2dpcXVlIGV0IENvaOlzaW9uIGRlcyB0ZXJyaXRvaXJlcw==",
-	"SGVydukgQmVydmlsbGU=", "TWVy",
-	"TGF1cmVuY2UgQm9vbmU=", "RXVyb3Bl",
-	"yWxpc2FiZXRoIEJvcm5l", "UHJlbWnocmUgbWluaXN0cmU=",
-	"RnJhbudvaXMgQnJhdW4=", "U2FudOkgZXQgUHLpdmVudGlvbg==",
-	"SmVhbi1GcmFu529pcyBDYXJlbmNv", "T3V0cmUtbWVy",
-	"Q2hhcmxvdHRlIENhdWJlbA==", "RW5mYW5jZQ==",
-	"Q2F0aGVyaW5lIENvbG9ubmE=", "RXVyb3BlIGV0IEFmZmFpcmVzIOl0cmFuZ+hyZXM=",
-	"SmVhbi1DaHJpc3RvcGhlIENvbWJl", "U29saWRhcml06XMsIEF1dG9ub21pZSBwZXJzb25uZXMgaGFuZGljYXDpZXM=",
-	"QulyYW5n6HJlIENvdWlsbGFyZA==", "yWNvbG9naWU=",
-	"R+lyYWxkIERhcm1hbmlu", "SW506XJpZXVyIGV0IE91dHJlLW1lcg==",
-	"R2VuZXZp6HZlIERhcnJpZXVzc2VjcQ==", "UGVyc29ubmVzIGhhbmRpY2Fw6WVz",
-	"yXJpYyBEdXBvbmQtTW9yZXR0aQ==", "SnVzdGljZQ==",
-	"T2xpdmllciBEdXNzb3B0", "VHJhdmFpbCwgUGxlaW4gZW1wbG9pIGV0IEluc2VydGlvbg==",
-	"U2FyYWggRWwgSGHvcnk=", "SmV1bmVzc2UgZXQgU2VydmljZSBuYXRpb25hbCB1bml2ZXJzZWw=",
-	"RG9taW5pcXVlIEZhdXJl", "Q29sbGVjdGl2aXTpcyB0ZXJyaXRvcmlhbGVzIGV0IFJ1cmFsaXTp",
-	"TWFyYyBGZXNuZWF1", "QWdyaWN1bHR1cmUgZXQgU291dmVyYWluZXTpIGFsaW1lbnRhaXJl",
-	"QWdu6HMgRmlybWluIExlIEJvZG8=", "T3JnYW5pc2F0aW9uIHRlcnJpdG9yaWFsZSBldCBQcm9mZXNzaW9ucyBkZSBzYW506Q==",
-	"Q2Fyb2xlIEdyYW5kamVhbg==", "RW5zZWlnbmVtZW50IGV0IEZvcm1hdGlvbiBwcm9mZXNzaW9ubmVscw==",
-	"T2xpdmlhIEdy6WdvaXJl", "UGV0aXRlcyBldCBtb3llbm5lcyBlbnRyZXByaXNlcywgQ29tbWVyY2UsIEFydGlzYW5hdCBldCBUb3VyaXNtZQ==",
-	"U3RhbmlzbGFzIEd1ZXJpbmk=", "VHJhbnNmb3JtYXRpb24gZXQgRm9uY3Rpb24gcHVibGlxdWVz",
-	"T2xpdmllciBLbGVpbg==", "VmlsbGUgZXQgTG9nZW1lbnQ=",
-	"QnJ1bm8gTGUgTWFpcmU=", "yWNvbm9taWUsIEZpbmFuY2VzIGV0IFNvdXZlcmFpbmV06SBpbmR1c3RyaWVsbGUgZXQgbnVt6XJpcXVl",
-	"U+liYXN0aWVuIExlY29ybnU=", "QXJt6WVz",
-	"Um9sYW5kIExlc2N1cmU=", "SW5kdXN0cmll",
-	"UGF0cmljaWEgTWlyYWxs6HM=", "QW5jaWVucyBjb21iYXR0YW50cyBldCBN6W1vaXJl",
-	"UGFwIE5kaWF5ZQ==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==",
-	"QW3pbGllIE91ZOlhLUNhc3TpcmE=", "U3BvcnRzIGV0IEpldXggb2x5bXBpcXVlcyBldCBwYXJhbHltcGlxdWVz",
-	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==",	"VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==",
-	"U3lsdmllIFJldGFpbGxlYXU=", "RW5zZWlnbmVtZW50IHN1cOlyaWV1ciBldCBSZWNoZXJjaGU=",
-	"RnJhbmNrIFJpZXN0ZXI=", "UmVsYXRpb25zIGF2ZWMgbGUgUGFybGVtZW50",
-	"SXNhYmVsbGUgUm9tZQ==", "yWdhbGl06SBlbnRyZSBsZXMgZmVtbWVzIGV0IGxlcyBob21tZXMsIERpdmVyc2l06SBldCDJZ2FsaXTpIGRlcyBjaGFuY2Vz",
-	"TWFybOhuZSBTY2hpYXBwYQ==", "yWNvbm9taWUgc29jaWFsZSBldCBzb2xpZGFpcmUgZXQgVmllIGFzc29jaWF0aXZl",
-	"T2xpdmllciBW6XJhbg==", "UmVub3V2ZWF1IGTpbW9jcmF0aXF1ZSAocG9ydGUtcGFyb2xlIGR1IEdvdXZlcm5lbWVudCk=",
+	"UmltYSBBYmR1bC1NYWxhaw==", "Q3VsdHVyZQ==", 
+	"U2FicmluYSBBZ3Jlc3RpLVJvdWJhY2hl", "VmlsbGU=", 
+	"R2FicmllbCBBdHRhbA==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==", 
+	"U29uaWEgQmFja+hz", "Q2l0b3llbm5ldOk=", 
+	"SmVhbi1Ob+tsIEJhcnJvdA==", "TnVt6XJpcXVl", 
+	"Q2zpbWVudCBCZWF1bmU=", "VHJhbnNwb3J0cw==", 
+	"T2xpdmllciBCZWNodA==", "Q29tbWVyY2UgZXh06XJpZXVyLCBBdHRyYWN0aXZpdOkgZXQgRnJhbudhaXMgZGUgbCfpdHJhbmdlcg==", 
+	"Q2hyaXN0b3BoZSBC6WNodQ==", "VHJhbnNpdGlvbiDpY29sb2dpcXVlIGV0IENvaOlzaW9uIGRlcyB0ZXJyaXRvaXJlcw==", 
+	"QXVyb3JlIEJlcmfp", "U29saWRhcml06XMgZXQgRmFtaWxsZXM=", 
+	"SGVydukgQmVydmlsbGU=", "TWVy", 
+	"TGF1cmVuY2UgQm9vbmU=", "RXVyb3Bl", 
+	"yWxpc2FiZXRoIEJvcm5l", "UHJlbWnocmUgbWluaXN0cmU=", 
+	"Q2hhcmxvdHRlIENhdWJlbA==", "RW5mYW5jZQ==", 
+	"VGhvbWFzIENhemVuYXZl", "Q29tcHRlcyBwdWJsaWNz", 
+	"Q2F0aGVyaW5lIENvbG9ubmE=", "RXVyb3BlIGV0IGRlcyBBZmZhaXJlcyDpdHJhbmfocmVz", 
+	"QulyYW5n6HJlIENvdWlsbGFyZA==", "yWdhbGl06SBlbnRyZSBsZXMgZmVtbWVzIGV0IGxlcyBob21tZXMgZXQgTHV0dGUgY29udHJlIGxlcyBkaXNjcmltaW5hdGlvbnM=", 
+	"R+lyYWxkIERhcm1hbmlu", "SW506XJpZXVyIGV0IE91dHJlLW1lcg==", 
+	"yXJpYyBEdXBvbmQtTW9yZXR0aQ==", "SnVzdGljZQ==", 
+	"T2xpdmllciBEdXNzb3B0", "VHJhdmFpbCwgUGxlaW4gZW1wbG9pIGV0IEluc2VydGlvbg==", 
+	"U2FyYWggRWwgSGHvcnk=", "QmlvZGl2ZXJzaXTp", 
+	"RG9taW5pcXVlIEZhdXJl", "Q29sbGVjdGl2aXTpcyB0ZXJyaXRvcmlhbGVzIGV0IFJ1cmFsaXTp", 
+	"TWFyYyBGZXNuZWF1", "QWdyaWN1bHR1cmUgZXQgU291dmVyYWluZXTpIGFsaW1lbnRhaXJl", 
+	"QWdu6HMgRmlybWluIExlIEJvZG8=", "T3JnYW5pc2F0aW9uIHRlcnJpdG9yaWFsZSBldCBQcm9mZXNzaW9ucyBkZSBzYW506Q==", 
+	"Q2Fyb2xlIEdyYW5kamVhbg==", "RW5zZWlnbmVtZW50IGV0IEZvcm1hdGlvbiBwcm9mZXNzaW9ubmVscw==", 
+	"T2xpdmlhIEdy6WdvaXJl", "UGV0aXRlcyBldCBtb3llbm5lcyBlbnRyZXByaXNlcywgQ29tbWVyY2UsIEFydGlzYW5hdCBldCBUb3VyaXNtZQ==", 
+	"U3RhbmlzbGFzIEd1ZXJpbmk=", "VHJhbnNmb3JtYXRpb24gZXQgRm9uY3Rpb24gcHVibGlxdWVz", 
+	"RmFkaWxhIEtoYXR0YWJp", "UGVyc29ubmVzIGhhbmRpY2Fw6WVz", 
+	"QnJ1bm8gTGUgTWFpcmU=", "yWNvbm9taWUsIEZpbmFuY2VzLCBTb3V2ZXJhaW5ldOkgaW5kdXN0cmllbGxlIGV0IE51belyaXF1ZQ==", 
+	"U+liYXN0aWVuIExlY29ybnU=", "QXJt6WVz", 
+	"Um9sYW5kIExlc2N1cmU=", "SW5kdXN0cmll", 
+	"UGF0cmljaWEgTWlyYWxs6HM=", "QW5jaWVucyBjb21iYXR0YW50cyBldCBN6W1vaXJl", 
+	"QW3pbGllIE91ZOlhLUNhc3TpcmE=", "U3BvcnRzIGV0IEpldXggT2x5bXBpcXVlcyBldCBQYXJhbHltcGlxdWVz", 
+	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==", "VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==", 
+	"U3lsdmllIFJldGFpbGxlYXU=", "RW5zZWlnbmVtZW50IHN1cOlyaWV1ciBldCBkZSBsYSBSZWNoZXJjaGU=", 
+	"RnJhbmNrIFJpZXN0ZXI=", "UmVsYXRpb25zIGF2ZWMgbGUgUGFybGVtZW50", 
+	"QXVy6WxpZW4gUm91c3NlYXU=", "U2FudOkgZXQgUHLpdmVudGlvbg==", 
+	"UHJpc2NhIFRoZXZlbm90", "SmV1bmVzc2UgZXQgU2VydmljZSBuYXRpb25hbCB1bml2ZXJzZWw=", 
+	"T2xpdmllciBW6XJhbg==", "UmVub3V2ZWF1IGTpbW9jcmF0aXF1ZSAocG9ydGUtcGFyb2xlIGR1IEdvdXZlcm5lbWVudCk=", 
+	"UGF0cmljZSBWZXJncmlldGU=", "TG9nZW1lbnQ=", 
+	"UGhpbGlwcGUgVmlnaWVy", "T3V0cmUtbWVy", 
 	"Q2hyeXNvdWxhIFphY2hhcm9wb3Vsb3U=", "ROl2ZWxvcHBlbWVudCwgRnJhbmNvcGhvbmllIGV0IFBhcnRlbmFyaWF0cyBpbnRlcm5hdGlvbmF1eA=="
  ];
+
  var nb_min = tab_ministres.length/2; //pour éviter quelques calculs
  
  function elt(nom_obj)  { return document.getElementById(nom_obj); }
@@ -319,9 +321,9 @@ button { cursor:pointer; }
 	elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
 	
-	elt("mode").innerHTML = "[Passer en mode \'";
-	elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
-	elt("mode").innerHTML += "\']";
+	//elt("mode").innerHTML = "[Passer en mode \'";
+	//elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
+	//elt("mode").innerHTML += "\']";
 
 	if (localStorage.getItem(VARNAME)!=null)
 	{
@@ -443,21 +445,21 @@ function change_mode()
 <body onload="start()" style="user-select:none">
 <div id="helpbox" class="box">
 	<div id="help" class="modal">
-		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère ou de sa photographie.<BR>
-		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère ou d'une photo.<BR>
+		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère<!-- ou de sa photographie-->.<BR>
+		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère<!-- ou d'une photo-->.<BR>
 		Un nom correctement placé sera affiché <span style="color:green">en vert</span>, sinon il apparaîtra <span style="color:red">en rouge</span>.<BR>
 		<BR>
 		Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
-		La liste des ministres est classée par ordre alphabétique, les ministères et les photographies étant mélangés aléatoirement.<BR>
+		La liste des ministres est classée par ordre alphabétique, les ministères <!--et les portraits--> étant mélangés aléatoirement.<BR>
 		<BR>
-		[ Gouvernement "BORNE" - ajustement du 28/11/2022 (après démission de Mme Cayeux) ]<BR>
+		[ Gouvernement "BORNE" - remaniement partiel du 20/07/2023 ]<BR>
 		<center><button onclick="hide_help()">OK</button></center>
-		<span id="credits">Crédits photographiques : AFP, service photo de Matignon-Benoît Granier,
+		<!--span id="credits">Crédits photographiques : AFP, service photo de Matignon-Benoît Granier,
 		 Jonathan Sarago, Matignon, ministère de l'Intérieur, ministère de l'Intérieur-E. Delelis,
 		 ministère de l'Europe et des Affaires étrangères, Christian Hamilcaro/ministère des Armées,
 		 ministère de l'Éducation nationale et de la Jeunesse, ministère de l'Enseignement supérieur et de la Recherche,
 		 ministère de la Transition écologique et de la Cohésion des territoires,
-		 Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,Gezelin Gree.</span>
+		 Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,Gezelin Gree.</span-->
 	</div>
 </div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
@@ -473,6 +475,6 @@ function change_mode()
 	</div>
 </div>
 <div id="aide" onclick="show('helpbox')" title="aide">?</div>
-<div id="mode" onclick="change_mode()"></div>
+<!--div id="mode" onclick="change_mode()"></div--
 </body>
 </html>
