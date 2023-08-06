@@ -22,6 +22,7 @@
 #aide:hover { color:white; background-color:blue; }
 #credits { font-size:0.7em; color:gray; }
 #mode { position:fixed; top:90px; right: 50px; cursor:pointer; }
+#mode:hover { text-decoration:underline; }
 #version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 .box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px; }
 .modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white; }
@@ -29,8 +30,8 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 05/08/2023";
- const VERNUM = "2.011";
+ const VERDES = "G. JANDOT - 06/08/2023";
+ const VERNUM = "2.012";
  
  var score = 0;
  var essais = 0;
@@ -238,6 +239,7 @@ button { cursor:pointer; }
 			{
 				tab_occup[h] = true;
 				essais++;
+				hide("mode"); //on ne peut pas changer de mode en cours de partie
 				if (elt_depl.num==tab_idx[h])
 				{
 					elt_depl.style.color = COL_OK;
@@ -321,10 +323,11 @@ button { cursor:pointer; }
 	elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
 	
-	//elt("mode").innerHTML = "[Passer en mode \'";
-	//elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
-	//elt("mode").innerHTML += "\']";
-
+	elt("mode").innerHTML = "[Passer en mode \'";
+	elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
+	elt("mode").innerHTML += "\']";
+	show("mode");
+	
 	if (localStorage.getItem(VARNAME)!=null)
 	{
 		hide("helpbox");
@@ -445,21 +448,23 @@ function change_mode()
 <body onload="start()" style="user-select:none">
 <div id="helpbox" class="box">
 	<div id="help" class="modal">
-		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère<!-- ou de sa photographie-->.<BR>
-		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère<!-- ou d'une photo-->.<BR>
+		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère ou de sa photographie.<BR>
+		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère ou d'une photo.<BR>
 		Un nom correctement placé sera affiché <span style="color:green">en vert</span>, sinon il apparaîtra <span style="color:red">en rouge</span>.<BR>
 		<BR>
 		Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
-		La liste des ministres est classée par ordre alphabétique, les ministères <!--et les portraits--> étant mélangés aléatoirement.<BR>
+		La liste des ministres est classée par ordre alphabétique, les ministères et les portraits étant mélangés aléatoirement.<BR>
 		<BR>
 		[ Gouvernement "BORNE" - remaniement partiel du 20/07/2023 ]<BR>
 		<center><button onclick="hide_help()">OK</button></center>
-		<!--span id="credits">Crédits photographiques : AFP, service photo de Matignon-Benoît Granier,
-		 Jonathan Sarago, Matignon, ministère de l'Intérieur, ministère de l'Intérieur-E. Delelis,
-		 ministère de l'Europe et des Affaires étrangères, Christian Hamilcaro/ministère des Armées,
-		 ministère de l'Éducation nationale et de la Jeunesse, ministère de l'Enseignement supérieur et de la Recherche,
-		 ministère de la Transition écologique et de la Cohésion des territoires,
-		 Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,Gezelin Gree.</span-->
+		<span id="credits">Crédits photographiques : Service photo de Matignon-Benoît Granier,
+		AFP, Jonathan Sarago, Fabrice Balsamo/DICOM ministère de l’Intérieur et des Outre-mer,
+		Ministère de l'Europe et des Affaires étrangères, Christian Hamilcaro/Ministère des Armées,
+		Ministère de la Transition écologique et de la Cohésion des territoires,
+		Ministère de l'Éducation nationale et de la Jeunesse/Philippe Devernay,
+		Ministères sociaux/DICOM /Martin Chang/Sipa,
+		Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,
+		Ministère de la Transformation et de la Fonction publiques/Gezelin Gree.</span>
 	</div>
 </div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
@@ -475,6 +480,6 @@ function change_mode()
 	</div>
 </div>
 <div id="aide" onclick="show('helpbox')" title="aide">?</div>
-<!--div id="mode" onclick="change_mode()"></div--
+<div id="mode" onclick="change_mode()"></div>
 </body>
 </html>
