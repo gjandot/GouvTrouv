@@ -32,8 +32,8 @@ button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 28/09/2023";
- const VERNUM = "2.014";
+ const VERDES = "G. JANDOT - 12/10/2023";
+ const VERNUM = "2.015";
  
  var score = 0;
  var essais = 0;
@@ -64,7 +64,7 @@ button { cursor:pointer; }
  //4) et le remplacer dans la code de la page pour obfuscation basique
  var tab_ministres = [
 	"UmltYSBBYmR1bC1NYWxhaw==", "Q3VsdHVyZQ==", 
-	"U2FicmluYSBBZ3Jlc3RpLVJvdWJhY2hl", "VmlsbGU=", 
+	"U2FicmluYSBBZ3Jlc3RpLVJvdWJhY2hl", "Q2l0b3llbm5ldOkgZXQgdmlsbGU=", 
 	"R2FicmllbCBBdHRhbA==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==", 
 	"SmVhbi1Ob+tsIEJhcnJvdA==", "TnVt6XJpcXVl", 
 	"Q2zpbWVudCBCZWF1bmU=", "VHJhbnNwb3J0cw==", 
@@ -315,6 +315,17 @@ button { cursor:pointer; }
 		for (var i=0; i<tab_ministres.length; i++)
 		{
 			var row = "\"" + btoa(tab_ministres[i]) + "\",";
+			console.log(row); //ne pas supprimer
+		}
+		return;
+	}
+	
+	if (window.location.search.toLowerCase()=="?d")
+	//décodage du tableau préalablement masqué pour modification
+	{
+		for (var i=0; i<tab_ministres.length; i++)
+		{
+			var row = "\"" + atob(tab_ministres[i]) + "\",";
 			console.log(row); //ne pas supprimer
 		}
 		return;
