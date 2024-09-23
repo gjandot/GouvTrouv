@@ -3,19 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Gouvernement BORNE : jeu de correspondances">
+<meta name="description" content="Gouvernement : jeu de correspondances">
 <meta name="author" content="Guillaume JANDOT">
 <link rel="icon" type="image/png" href="gouvtrouv.png">
-<title>Gouvernement BORNE</title>
+<title>Gouvernement</title>
 <style>
 .nom { position:absolute; z-index:9; left:10px; font-size:1.1em; }
 .nom:hover { border:1px solid black; border-radius:3px; }
 
-.ministere { position:absolute; left:407px; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
-.case { position:absolute; border:1px solid black; width:207px; left:195px; }
-.portrait { position:absolute; left:407px; }
+.ministere { position:absolute; left:502px; font-size:1.2em; border:1px solid black; border-radius:5px; padding:3px; }
+.case { position:absolute; border:1px solid black; width:252px; left:245px; }
 
-#zoom { position:fixed; left:480px; }
 #scoreaff { position:fixed; top:5px; right:49px; border:1px solid; width:50px; height:20px; }
 #scorebar { background-color:#88FF88; height:20px;}
 #score { text-align:center; width:100%; position:absolute; }
@@ -25,19 +23,19 @@
 #credits { font-size:0.7em; color:gray; }
 #mode { position:fixed; top:90px; right: 50px; cursor:pointer; }
 #mode:hover { text-decoration:underline; }
-#version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
+#version { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
 .box { position: fixed; z-index:99; background-color: rgba(0,0,0,0.5); width:100%; height:100%; top:0px; left:0px; }
 .modal { margin:9% auto; padding:32px; border:3px solid black; width:50%; background-color:white; }
 button { cursor:pointer; }
 </style>
 <noscript>L'application nécessite l'activation de Javascript.</noscript>
+<script type="text/javascript" src="datagvt.js"></script>
 <script type="text/javascript">
- const VERDES = "G. JANDOT - 12/10/2023";
- const VERNUM = "2.015";
+ const VERDES = "G. JANDOT - 23/09/2024";
+ const VERNUM = "2.017";
  
  var score = 0;
  var essais = 0;
- var mode_photo = false;
  var mouv = false;
  const MARGE_SCROLL = 20;
  var to_id; //timeout_idtimeout_id
@@ -45,6 +43,7 @@ button { cursor:pointer; }
  var g_offy = 0;
  var offx = 0;
  var offy = 0;
+ var largueur = 200;
  const H_TXT = 32;
  const COLINT = 128;
  const MAXCOL = 256;
@@ -52,59 +51,15 @@ button { cursor:pointer; }
  var tab_idx = [];
  var tab_occup = [];
  const VARNAME = "h"; //(localStorage)
- const MODE_MIN = "ministères";
- const MODE_PHOTO = "photographies";
  const COL_OK = "green";
  const COL_MOV = "blue";
  const COL_NO = "red";
+ const PX = "px";
  
- //1) préparer le tab_ministres en clair ("Ministre", "Ministère",)
+ //1) préparer le tab_ministres en clair ("Ministre", "Ministère") - penser à l'ordre alpha sur les noms!
  //2) appeler la page avec le paramètre ?c
  //3) récuperer le tab_ministres encodé dans la console
- //4) et le remplacer dans la code de la page pour obfuscation basique
- var tab_ministres = [
-	"UmltYSBBYmR1bC1NYWxhaw==", "Q3VsdHVyZQ==", 
-	"U2FicmluYSBBZ3Jlc3RpLVJvdWJhY2hl", "Q2l0b3llbm5ldOkgZXQgdmlsbGU=", 
-	"R2FicmllbCBBdHRhbA==", "yWR1Y2F0aW9uIG5hdGlvbmFsZSBldCBKZXVuZXNzZQ==", 
-	"SmVhbi1Ob+tsIEJhcnJvdA==", "TnVt6XJpcXVl", 
-	"Q2zpbWVudCBCZWF1bmU=", "VHJhbnNwb3J0cw==", 
-	"T2xpdmllciBCZWNodA==", "Q29tbWVyY2UgZXh06XJpZXVyLCBBdHRyYWN0aXZpdOkgZXQgRnJhbudhaXMgZGUgbCfpdHJhbmdlcg==", 
-	"Q2hyaXN0b3BoZSBC6WNodQ==", "VHJhbnNpdGlvbiDpY29sb2dpcXVlIGV0IENvaOlzaW9uIGRlcyB0ZXJyaXRvaXJlcw==", 
-	"QXVyb3JlIEJlcmfp", "U29saWRhcml06XMgZXQgRmFtaWxsZXM=", 
-	"SGVydukgQmVydmlsbGU=", "TWVy", 
-	"TGF1cmVuY2UgQm9vbmU=", "RXVyb3Bl", 
-	"yWxpc2FiZXRoIEJvcm5l", "UHJlbWnocmUgbWluaXN0cmU=", 
-	"Q2hhcmxvdHRlIENhdWJlbA==", "RW5mYW5jZQ==", 
-	"VGhvbWFzIENhemVuYXZl", "Q29tcHRlcyBwdWJsaWNz", 
-	"Q2F0aGVyaW5lIENvbG9ubmE=", "RXVyb3BlIGV0IEFmZmFpcmVzIOl0cmFuZ+hyZXM=", 
-	"QulyYW5n6HJlIENvdWlsbGFyZA==", "yWdhbGl06SBlbnRyZSBsZXMgZmVtbWVzIGV0IGxlcyBob21tZXMgZXQgTHV0dGUgY29udHJlIGxlcyBkaXNjcmltaW5hdGlvbnM=", 
-	"R+lyYWxkIERhcm1hbmlu", "SW506XJpZXVyIGV0IE91dHJlLW1lcg==", 
-	"yXJpYyBEdXBvbmQtTW9yZXR0aQ==", "SnVzdGljZQ==", 
-	"T2xpdmllciBEdXNzb3B0", "VHJhdmFpbCwgUGxlaW4gZW1wbG9pIGV0IEluc2VydGlvbg==", 
-	"U2FyYWggRWwgSGHvcnk=", "QmlvZGl2ZXJzaXTp", 
-	"RG9taW5pcXVlIEZhdXJl", "Q29sbGVjdGl2aXTpcyB0ZXJyaXRvcmlhbGVzIGV0IFJ1cmFsaXTp", 
-	"TWFyYyBGZXNuZWF1", "QWdyaWN1bHR1cmUgZXQgU291dmVyYWluZXTpIGFsaW1lbnRhaXJl", 
-	"QWdu6HMgRmlybWluIExlIEJvZG8=", "T3JnYW5pc2F0aW9uIHRlcnJpdG9yaWFsZSBldCBQcm9mZXNzaW9ucyBkZSBzYW506Q==", 
-	"Q2Fyb2xlIEdyYW5kamVhbg==", "RW5zZWlnbmVtZW50IGV0IEZvcm1hdGlvbiBwcm9mZXNzaW9ubmVscw==", 
-	"T2xpdmlhIEdy6WdvaXJl", "UGV0aXRlcyBldCBtb3llbm5lcyBlbnRyZXByaXNlcywgQ29tbWVyY2UsIEFydGlzYW5hdCBldCBUb3VyaXNtZQ==", 
-	"U3RhbmlzbGFzIEd1ZXJpbmk=", "VHJhbnNmb3JtYXRpb24gZXQgRm9uY3Rpb24gcHVibGlxdWVz", 
-	"RmFkaWxhIEtoYXR0YWJp", "UGVyc29ubmVzIGhhbmRpY2Fw6WVz", 
-	"QnJ1bm8gTGUgTWFpcmU=", "yWNvbm9taWUsIEZpbmFuY2VzLCBTb3V2ZXJhaW5ldOkgaW5kdXN0cmllbGxlIGV0IE51belyaXF1ZQ==", 
-	"U+liYXN0aWVuIExlY29ybnU=", "QXJt6WVz", 
-	"Um9sYW5kIExlc2N1cmU=", "SW5kdXN0cmll", 
-	"UGF0cmljaWEgTWlyYWxs6HM=", "QW5jaWVucyBjb21iYXR0YW50cyBldCBN6W1vaXJl", 
-	"QW3pbGllIE91ZOlhLUNhc3TpcmE=", "U3BvcnRzIGV0IEpldXggT2x5bXBpcXVlcyBldCBQYXJhbHltcGlxdWVz", 
-	"QWdu6HMgUGFubmllci1SdW5hY2hlcg==", "VHJhbnNpdGlvbiDpbmVyZ+l0aXF1ZQ==", 
-	"U3lsdmllIFJldGFpbGxlYXU=", "RW5zZWlnbmVtZW50IHN1cOlyaWV1ciBldCBSZWNoZXJjaGU=", 
-	"RnJhbmNrIFJpZXN0ZXI=", "UmVsYXRpb25zIGF2ZWMgbGUgUGFybGVtZW50", 
-	"QXVy6WxpZW4gUm91c3NlYXU=", "U2FudOkgZXQgUHLpdmVudGlvbg==", 
-	"UHJpc2NhIFRoZXZlbm90", "SmV1bmVzc2UgZXQgU2VydmljZSBuYXRpb25hbCB1bml2ZXJzZWw=", 
-	"T2xpdmllciBW6XJhbg==", "UmVub3V2ZWF1IGTpbW9jcmF0aXF1ZSAocG9ydGUtcGFyb2xlIGR1IEdvdXZlcm5lbWVudCk=", 
-	"UGF0cmljZSBWZXJncmlldGU=", "TG9nZW1lbnQ=", 
-	"UGhpbGlwcGUgVmlnaWVy", "T3V0cmUtbWVy", 
-	"Q2hyeXNvdWxhIFphY2hhcm9wb3Vsb3U=", "ROl2ZWxvcHBlbWVudCwgRnJhbmNvcGhvbmllIGV0IFBhcnRlbmFyaWF0cyBpbnRlcm5hdGlvbmF1eA=="
- ];
-
+ //4) et le remplacer dans le code de la page pour obfuscation basique
  var nb_min = tab_ministres.length/2; //pour éviter quelques calculs
  
  function elt(nom_obj)  { return document.getElementById(nom_obj); }
@@ -160,7 +115,7 @@ button { cursor:pointer; }
 			g_offy = g_offy-delta;
 			if (mouv)
 			{
-				elt_depl.style.top = (g_offy-9) + "px";
+				elt_depl.style.top = (g_offy-9) + PX;
 			}
 			to_id = setTimeout(autoscroll, TO_DELAY); //pour continuer
 								// même si la souris ne bouge plus
@@ -178,7 +133,7 @@ button { cursor:pointer; }
 			g_offy = g_offy+delta;
 			if (mouv)
 			{
-				elt_depl.style.top = (g_offy-9) + "px";
+				elt_depl.style.top = (g_offy-9) + PX;
 			}
 			setTimeout(autoscroll, TO_DELAY); //pour continuer
 								// même si la souris ne bouge plus
@@ -194,8 +149,8 @@ button { cursor:pointer; }
 	
 	if (mouv)
 	{
-		elt_depl.style.left = (offx-9) + "px";
-		elt_depl.style.top = (offy-9) + "px";
+		elt_depl.style.left = (offx-9) + PX;
+		elt_depl.style.top = (offy-9) + PX;
 	}
 
 	g_offy = offy;
@@ -205,8 +160,8 @@ button { cursor:pointer; }
  function rangement()
  //retour d'un ministre dans la liste de gauche
  {
-	elt_depl.style.left = "10px";
-	elt_depl.style.top = (elt_depl.num*H_TXT) + "px";
+	elt_depl.style.left = "10" + PX;
+	elt_depl.style.top = (elt_depl.num*H_TXT) + PX;
 	elt_depl.style.color = "black";
 	elt_depl.style.fontWeight  = "normal";
  }
@@ -215,14 +170,14 @@ button { cursor:pointer; }
  {
 	if (mouv)
 	{ //atterrissage
-		if (e.pageX<200)
+		if (e.pageX<largeur)
 		//remis à gauche : rangement
 		{
 			rangement();
 		}
 		else
 		{
-			elt_depl.style.left = "200px";
+			elt_depl.style.left = largeur + PX;
 
 			var h = elt_depl.style.top.substr(0, elt_depl.style.top.length-2);
 			h = Math.floor(h/H_TXT);
@@ -240,7 +195,7 @@ button { cursor:pointer; }
 			{
 				tab_occup[h] = true;
 				essais++;
-				hide("mode"); //on ne peut pas changer de mode en cours de partie
+				//hide("mode"); //on ne peut pas changer de mode en cours de partie
 				if (elt_depl.num==tab_idx[h])
 				{
 					elt_depl.style.color = COL_OK;
@@ -260,7 +215,7 @@ button { cursor:pointer; }
 					elt_depl.style.fontWeight  = "normal";
 				}
 				maj_score();
-				elt_depl.style.top = (h*H_TXT)+9 + "px";
+				elt_depl.style.top = (h*H_TXT)+9 + PX;
 			}
 		}
 		mouv = false;
@@ -335,11 +290,33 @@ button { cursor:pointer; }
 	elt("vernum").innerHTML = VERNUM;
 	elt("version").title = VERDES;
 	
-	elt("mode").innerHTML = "[Passer en mode \'";
-	elt("mode").innerHTML += mode_photo ?  MODE_MIN : MODE_PHOTO;
-	elt("mode").innerHTML += "\']";
-	show("mode");
+	//DIMENSIONS
+	try {
+			largeur = BASE_LARGEUR; //const définie dans datagvt.js
+	}
+	catch (error) {
+			largeur = 200; //on reste sur la valeur par défaut
+	}
+	const stylesheet = document.styleSheets[0];
+	for (var s=0; s<stylesheet.cssRules.length; s++)
+	{
+		if (stylesheet.cssRules[s].selectorText == ".case")
+		{
+			stylesheet.cssRules[s].style.width = (largeur+5) + PX;
+			stylesheet.cssRules[s].style.left = (largeur-5) + PX;
+		}
+		if (stylesheet.cssRules[s].selectorText == ".ministere")
+		{
+			stylesheet.cssRules[s].style.left = (2*largeur+5) + PX;
+		}
+	}
 	
+	/////
+
+	
+	document.title = document.title + " " + NOMGVT; //(const définie dans datagvt.js)
+	elt("detail").innerHTML = DETAILGVT; //(idem)
+		
 	if (localStorage.getItem(VARNAME)!=null)
 	{
 		hide("helpbox");
@@ -378,38 +355,15 @@ button { cursor:pointer; }
 		myspan.num = i;
 		elt("main").appendChild(myspan);
 		
-		if (mode_photo) //MODE_PHOTO
-		{
-			myspan = document.createElement('img');
-			myspan.className = "portrait";
-			myspan.draggable = "false";
-            myspan.src = "img/m"+tab_idx[i]+".png";
-			myspan.style = "height:"+H_TXT+"px; top:" + H_TXT*i + "px;";
-			myspan.addEventListener('mouseenter', e => {
-				elt("zoom").src = e.target.src;
-				var posY = e.clientY;
-				var s = 150;
-				if (posY+s>window.innerHeight)
-				{
-					posY=window.innerHeight-s;
-				}
-				elt("zoom").style = "top:"+posY+"px;";
-				show("zoom");
-			});
-			myspan.addEventListener('mouseleave', e => {hide("zoom");});
-		}
-		else //MODE_MIN
-		{
-			myspan = document.createElement('span');
-			myspan.className = "ministere";
-			myspan.style = "top:" + H_TXT*i + "px;";
-			var coul1 = COLINT+rnd(MAXCOL-COLINT);
-			var coul2 = COLINT+rnd(MAXCOL-COLINT);
-			var coul3 = COLINT+rnd(MAXCOL-COLINT);
-			var couleur = "rgb("+coul1+","+coul2+","+coul3+")";
-			myspan.style.backgroundColor=couleur;
-			myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
-		}
+		myspan = document.createElement('span');
+		myspan.className = "ministere";
+		myspan.style = "top:" + H_TXT*i + "px;";
+		var coul1 = COLINT+rnd(MAXCOL-COLINT);
+		var coul2 = COLINT+rnd(MAXCOL-COLINT);
+		var coul3 = COLINT+rnd(MAXCOL-COLINT);
+		var couleur = "rgb("+coul1+","+coul2+","+coul3+")";
+		myspan.style.backgroundColor=couleur;
+		myspan.innerHTML = atob(tab_ministres[tab_idx[i]*2+1]);
 		elt("main").appendChild(myspan);
 		
 		//cadres
@@ -446,13 +400,12 @@ function fin()
 	}
 	elt("essfin").innerHTML += ")";
 	
-	show("finbox");
+	setTimeout(showfin, 999);
 }
 
-function change_mode()
+function showfin()
 {
-	mode_photo = !mode_photo;
-	start();
+	show("finbox");
 }
 
 </script>
@@ -460,31 +413,21 @@ function change_mode()
 <body onload="start()" style="user-select:none">
 <div id="helpbox" class="box">
 	<div id="help" class="modal">
-		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère ou de sa photographie.<BR>
-		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère ou d'une photo.<BR>
+		Le but du jeu est de faire correspondre, en un minimum d'essais, chaque nom de ministre avec celui de son ministère.<BR>
+		<B>Cliquer</B> sur un nom pour commencer à le <B>déplacer</B> puis <B>cliquer</B> de nouveau pour le <B>déposer</B> en face d'un ministère.<BR>
 		Un nom correctement placé sera affiché <span style="color:green">en vert</span>, sinon il apparaîtra <span style="color:red">en rouge</span>.<BR>
 		<BR>
 		Il est possible de reposer le nom d'un ministre dans la liste de départ.<BR>
-		La liste des ministres est classée par ordre alphabétique, les ministères et les portraits étant mélangés aléatoirement.<BR>
+		La liste des ministres est classée par ordre alphabétique, les ministères étant mélangés aléatoirement.<BR>
 		<BR>
-		[ Gouvernement "BORNE" - remaniement partiel du 20/07/2023 ]<BR>
-		[ Démission de Mme Backès le 27/09/2023]<BR>
+		<span id="detail"></span><BR>
 		<center><button onclick="hide_help()">OK</button></center>
-		<span id="credits">Crédits photographiques : Service photo de Matignon-Benoît Granier,
-		AFP, Jonathan Sarago, Fabrice Balsamo/DICOM ministère de l’Intérieur et des Outre-mer,
-		Ministère de l'Europe et des Affaires étrangères, Christian Hamilcaro/Ministère des Armées,
-		Ministère de la Transition écologique et de la Cohésion des territoires,
-		Ministère de l'Éducation nationale et de la Jeunesse/Philippe Devernay,
-		Ministères sociaux/DICOM /Martin Chang/Sipa,
-		Ministères sociaux/DICOM/Jeanne Accorsini/Sipa,
-		Ministère de la Transformation et de la Fonction publiques/Gezelin Gree.</span>
 	</div>
 </div>
 <div id="scoreaff"><div id="scorebar"><span id="score"></span></div></div>
 <div id="essais"></div>
 <div id="main"></div>
-<img id="zoom">
-<div id="version"><A HREF="https://github.com/gjandot/GouvTrouv" TARGET="_blank">Version <span id="vernum">0.000</span></A></div>
+<div id="version"><!--A HREF="https://github.com/gjandot/GouvTrouv" TARGET="_blank"-->Version <span id="vernum">0.000</span><!--/A--></div>
 <div id="finbox" class="box" style="display:none">
 	<div id="fin" class="modal">
 		Bravo !<BR>
@@ -493,6 +436,5 @@ function change_mode()
 	</div>
 </div>
 <div id="aide" onclick="show('helpbox')" title="aide">?</div>
-<div id="mode" onclick="change_mode()"></div>
 </body>
 </html>
